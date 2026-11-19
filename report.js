@@ -200,7 +200,7 @@ function build(data){
     h+=mix('Core episodes',by(ms,'episode_audio').concat(by(ms,'episode_video')),'listens &amp; views','episodes')+(SR?mix('Reels',by(ms,'reel'),'views','reels'):'')+(SC?mix('Clips',by(ms,'clip'),'views','clips'):'');
     h+='</div></section>';
     var NT=[['Core episodes','new_episode',by(ms,'episode_audio').concat(by(ms,'episode_video')),'listens &amp; views','episodes']];if(SR)NT.push(['Reels','new_reel',by(ms,'reel'),'views','reels']);if(SC)NT.push(['Clips','new_clip',by(ms,'clip'),'views','clips']);
-    NT=NT.map(function(t){var nr=by(ms,t[1]);return {label:t[0],has:nr.length>0,nw:sum(nr),all:sum(t[2]),unit:t[3],col:CV[t[4]]};}).filter(function(t){return t.has&&t.all>0;});
+    NT=NT.map(function(t){var nr=by(ms,t[1]),nm={};nr.forEach(function(r){nm[r.month]=1;});return {label:t[0],has:nr.length>0,nw:sum(nr),all:sum(t[2].filter(function(r){return nm[r.month];})),unit:t[3],col:CV[t[4]]};}).filter(function(t){return t.has&&t.all>0;});
     if(NT.length){var tn=0,ta=0;NT.forEach(function(t){t.nw=Math.min(t.nw,t.all);tn+=t.nw;ta+=t.all;});var pn=Math.round(tn/ta*100);
       h+='<section class="t-sec t-card t-keep"><h2 class="t-h2">'+(multi?'Content posted in this time frame':'This month\'s content')+' <span>vs. content still working for you</span></h2><p class="t-sub">'+(multi?'Views and listens on what we released from '+v.short+', compared with everything released before.':'Views and listens on what we released this month, compared with everything released in past months.')+'</p>';
       h+='<p class="t-newhead"><b>'+pn+'%</b> of your views and listens came from posts released '+(multi?'in this time frame':'this month')+'. The other <b>'+(100-pn)+'%</b> came from past posts that are still working for you.</p>';
