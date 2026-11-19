@@ -140,13 +140,17 @@ function build(data){
     var ms=v.months,multi=v.kind==='range',cur=totals(ms),pv=prevOf(v),prev=pv?totals(pv.months):null;
     var chg=function(k){if(!prev||!prev[k])return '';var c=(cur[k]-prev[k])/prev[k]*100;
       return '<b class="'+(c>=0?'up':'down')+'">'+(c>=0?'▲ +':'▼ ')+c.toFixed(1)+'%</b> vs '+pv.label;};
+    // Only show reels / clips when this view actually has them (views or pieces made).
+    var made=function(k){return by(ms,'created').filter(function(r){return r.platform===k;}).reduce(function(a,r){return a+num(r.value);},0);};
+    var SR=sum(by(ms,'reel'))>0||made('Reels')>0, SC=showClips&&(sum(by(ms,'clip'))>0||made('Clips')>0);
+    if((state.metric==='reels'&&!SR)||(state.metric==='clips'&&!SC))state.metric='total';
     var h='';
     h+='<header class="t-head"><div><div class="t-logo">'+(S.logo_url?'<img src="'+esc(S.logo_url)+'" alt="'+esc(S.client_name)+'">':'<span class="t-badge"'+(S.badge_color?' style="background:'+esc(S.badge_color)+'"':'')+'>'+esc(S.client_name||'Your Podcast')+'</span>')+'</div>';
     h+='<h1 class="t-title">Podcast <span>Impact</span> Report</h1></div><div class="t-right"><div class="t-period">'+(multi?esc(v.label)+':':'Period:')+'<br><b>'+v.short+'</b></div>'+(S.artwork_url?'<img class="t-art" src="'+esc(S.artwork_url)+'" alt="'+esc(S.client_name)+' show artwork">':'')+'</div></header>';
     if(!printing)h+=nav(v);
     var when=multi?'From '+v.short+' ('+ms.length+' months'+(v.note?' of data so far':'')+')':'In '+monthName(ms[0]);
     h+='<p class="t-lede">'+when+', your content earned <b>'+fmt(cur.total)+'</b> views and listens across every platform'+(prev&&prev.total?', <b>'+(cur.total>=prev.total?'up ':'down ')+Math.abs((cur.total-prev.total)/prev.total*100).toFixed(1)+'%</b> from '+pv.label:'')+'.'+(multi?' That is an average of <b>'+fmt(cur.total/ms.length)+'</b> a month.':'')+'</p>';
-    var cards=[['total','Total views &amp; listens',1],['episodes','Episode listens &amp; views'],['reels','Reel views']];if(showClips)cards.push(['clips','Clip views']);
+    var cards=[['total','Total views &amp; listens',1],['episodes','Episode listens &amp; views']];if(SR)cards.push(['reels','Reel views']);if(SC)cards.push(['clips','Clip views']);
     h+='<section class="t-sec"><h2 class="t-h2">Overview <span>metrics</span></h2><p class="t-sub">Everything viewed or listened to '+(multi?'during these '+ms.length+' months':'during the month')+', on all of your content.'+(pv?' The green or red percent shows how much each number went up or down compared with '+pv.label+'.':'')+'</p><div class="t-kpis">';
     cards.forEach(function(c){h+='<div class="t-card t-kpi'+(c[2]?' hero':' t-typed')+'"'+(c[2]?'':' style="--tc:'+CV[c[0]]+'"')+'><div class="t-klabel">'+(c[2]?'':TD(c[0]))+c[1]+'</div><div class="t-kval">'+fmt(cur[c[0]])+'</div><div class="t-kchg">'+(chg(c[0])||'&nbsp;')+'</div></div>';});
     h+='</div></section>';
@@ -169,13 +173,13 @@ function build(data){
     }
     h+='<section class="t-sec t-card"><h2 class="t-h2">Views <span>over time</span></h2><p class="t-sub">'+(multi?'The months in this view are highlighted.':'The 12 months up to '+monthName(ms[0])+'.')+'<span class="t-scr"> Click a month to open it.</span></p>';
     if(printing){h+='<div class="t-chart">'+trendSVG(680,ms,'total')+'</div>';}
-    else{h+='<div class="t-seg">';[['total','Total'],['episodes','Episodes'],['reels','Reels']].concat(showClips?[['clips','Clips']]:[]).forEach(function(b){h+='<button data-k="'+b[0]+'" style="--sc:'+CV[b[0]]+'" aria-pressed="'+(state.metric===b[0])+'">'+b[1]+'</button>';});
+    else{h+='<div class="t-seg">';[['total','Total'],['episodes','Episodes']].concat(SR?[['reels','Reels']]:[]).concat(SC?[['clips','Clips']]:[]).forEach(function(b){h+='<button data-k="'+b[0]+'" style="--sc:'+CV[b[0]]+'" aria-pressed="'+(state.metric===b[0])+'">'+b[1]+'</button>';});
       h+='</div><div class="t-chart" id="t-trend"></div>';}
     h+='</section>';
     if(multi){
-      h+='<section class="t-sec t-card"><h2 class="t-h2">Month <span>by month</span></h2><p class="t-sub">Each month in this view. <b>Change</b> is how much that month\'s total views and listens went up or down compared with the month before it.<span class="t-scr"> Click a month to open its full report.</span></p><div class="t-wrap"><table class="t-table"><thead><tr><th>Month</th><th class="t-num">'+TD('episodes')+'Episodes</th><th class="t-num">'+TD('reels')+'Reels</th>'+(showClips?'<th class="t-num">'+TD('clips')+'Clips</th>':'')+'<th class="t-num">Total</th><th class="t-num">Change</th></tr></thead><tbody>';
+      h+='<section class="t-sec t-card"><h2 class="t-h2">Month <span>by month</span></h2><p class="t-sub">Each month in this view. <b>Change</b> is how much that month\'s total views and listens went up or down compared with the month before it.<span class="t-scr"> Click a month to open its full report.</span></p><div class="t-wrap"><table class="t-table"><thead><tr><th>Month</th><th class="t-num">'+TD('episodes')+'Episodes</th>'+(SR?'<th class="t-num">'+TD('reels')+'Reels</th>':'')+''+(SC?'<th class="t-num">'+TD('clips')+'Clips</th>':'')+'<th class="t-num">Total</th><th class="t-num">Change</th></tr></thead><tbody>';
       ms.slice().reverse().forEach(function(m){var t=series[months.indexOf(m)],pi=months.indexOf(m)-1,pt=pi>=0?series[pi]:null,c=pt&&pt.total?(t.total-pt.total)/pt.total*100:null;
-        h+='<tr><td><button class="t-mlink" data-m="'+m+'">'+monthName(m)+'</button></td><td class="t-num">'+fmt(t.episodes)+'</td><td class="t-num">'+fmt(t.reels)+'</td>'+(showClips?'<td class="t-num">'+fmt(t.clips)+'</td>':'')+'<td class="t-num t-strong">'+fmt(t.total)+'</td><td class="t-num t-kchg">'+(c==null?'—':'<b class="'+(c>=0?'up':'down')+'">'+(c>=0?'+':'')+c.toFixed(1)+'%</b>')+'</td></tr>';});
+        h+='<tr><td><button class="t-mlink" data-m="'+m+'">'+monthName(m)+'</button></td><td class="t-num">'+fmt(t.episodes)+'</td>'+(SR?'<td class="t-num">'+fmt(t.reels)+'</td>':'')+(SC?'<td class="t-num">'+fmt(t.clips)+'</td>':'')+'<td class="t-num t-strong">'+fmt(t.total)+'</td><td class="t-num t-kchg">'+(c==null?'—':'<b class="'+(c>=0?'up':'down')+'">'+(c>=0?'+':'')+c.toFixed(1)+'%</b>')+'</td></tr>';});
       h+='</tbody></table></div></section>';
     }
     function mix(title,rows,unit,k){rows=byPlatform(rows);var t=rows.reduce(function(a,r){return a+r.value;},0),mx=Math.max.apply(null,rows.map(function(r){return r.value;}).concat([1]));
@@ -185,9 +189,9 @@ function build(data){
       rows.forEach(function(r){var v2=r.value;s+='<div class="t-row"><div>'+esc(r.platform)+'</div><div class="t-track"><div class="t-bar" style="background:'+CV[k]+';width:'+Math.max(1.5,v2/mx*100)+'%"></div></div><div class="t-val">'+fmt(v2)+'<span>'+(t?(v2/t*100).toFixed(1):'0')+'%</span></div></div>';});
       return s+'</div>';}
     h+='<section class="t-sec t-keep"><h2 class="t-h2">Views <span>by platform</span></h2><p class="t-sub">Where your audience found you'+(multi?' across these months':' in '+monthName(ms[0]))+', and each platform\'s share of the total.</p><div class="t-grid3">';
-    h+=mix('Core episodes',by(ms,'episode_audio').concat(by(ms,'episode_video')),'listens &amp; views','episodes')+mix('Reels',by(ms,'reel'),'views','reels')+(showClips?mix('Clips',by(ms,'clip'),'views','clips'):'');
+    h+=mix('Core episodes',by(ms,'episode_audio').concat(by(ms,'episode_video')),'listens &amp; views','episodes')+(SR?mix('Reels',by(ms,'reel'),'views','reels'):'')+(SC?mix('Clips',by(ms,'clip'),'views','clips'):'');
     h+='</div></section>';
-    var NT=[['Core episodes','new_episode',by(ms,'episode_audio').concat(by(ms,'episode_video')),'listens &amp; views','episodes'],['Reels','new_reel',by(ms,'reel'),'views','reels']];if(showClips)NT.push(['Clips','new_clip',by(ms,'clip'),'views','clips']);
+    var NT=[['Core episodes','new_episode',by(ms,'episode_audio').concat(by(ms,'episode_video')),'listens &amp; views','episodes']];if(SR)NT.push(['Reels','new_reel',by(ms,'reel'),'views','reels']);if(SC)NT.push(['Clips','new_clip',by(ms,'clip'),'views','clips']);
     NT=NT.map(function(t){var nr=by(ms,t[1]);return {label:t[0],has:nr.length>0,nw:sum(nr),all:sum(t[2]),unit:t[3],col:CV[t[4]]};}).filter(function(t){return t.has&&t.all>0;});
     if(NT.length){var tn=0,ta=0;NT.forEach(function(t){t.nw=Math.min(t.nw,t.all);tn+=t.nw;ta+=t.all;});var pn=Math.round(tn/ta*100);
       h+='<section class="t-sec t-card t-keep"><h2 class="t-h2">'+(multi?'Content posted in this time frame':'This month\'s content')+' <span>vs. content still working for you</span></h2><p class="t-sub">'+(multi?'Views and listens on what we released from '+v.short+', compared with everything released before.':'Views and listens on what we released this month, compared with everything released in past months.')+'</p>';
@@ -196,9 +200,9 @@ function build(data){
         h+='<div class="t-nrow"><div class="t-nlbl">'+t.label+'</div><div class="t-ntrack" style="background:color-mix(in srgb,'+t.col+' 22%,#fff)"><div class="t-nnew" style="background:'+t.col+';width:'+a+'%"></div></div><div class="t-nval"><span class="t-dot" style="background:'+t.col+'"></span>'+fmt(t.nw)+(multi?' new':' this month')+' <span class="t-dot t-dot2" style="background:color-mix(in srgb,'+t.col+' 22%,#fff)"></span>'+fmt(t.all-t.nw)+' past</div></div>';});
       h+='<div class="t-nkey"><span><span class="t-dot" style="background:#6b6b66"></span>Released '+(multi?'in this time frame':'this month')+'</span><span><span class="t-dot t-dot2" style="background:#dcdad4"></span>Released in past months</span></div></section>';}
     var cr={};by(ms,'created').forEach(function(r){cr[r.platform]=(cr[r.platform]||0)+num(r.value);});
-    if(Object.keys(cr).length){var ce=cr['Core episodes']||0,rl=cr['Reels']||0,cl=showClips?(cr['Clips']||0):0;
+    if(Object.keys(cr).length){var ce=cr['Core episodes']||0,rl=cr['Reels']||0,cl=SC?(cr['Clips']||0):0;
       var ap=num(S.audio_platforms)||0,rp=num(S.reel_platforms)||0,cp=num(S.clip_platforms)||0;
-      var vs=[['Core audio',ce,(ap||'')+(ap?'+ platforms':''),ce*ap,'episodes'],['YouTube episodes',ce,'YouTube',ce,'episodes'],['Reels',rl,rp+' platforms',rl*rp,'reels']];if(showClips)vs.push(['Clips',cl,cp+' platforms',cl*cp,'clips']);
+      var vs=[['Core audio',ce,(ap||'')+(ap?'+ platforms':''),ce*ap,'episodes'],['YouTube episodes',ce,'YouTube',ce,'episodes']];if(SR)vs.push(['Reels',rl,rp+' platforms',rl*rp,'reels']);if(SC)vs.push(['Clips',cl,cp+' platforms',cl*cp,'clips']);
       var pl=vs.reduce(function(a,r){return a+r[3];},0);
       h+='<section class="t-sec t-card"><h2 class="t-h2">The value <span>snapshot</span></h2><p class="t-sub">What we created for you and everywhere it was posted'+(multi?' over these months':'')+'.</p><div class="t-wrap"><table class="t-table"><thead><tr><th>Content type</th><th class="t-num">Created</th><th>Platforms</th><th class="t-num">Total placements</th></tr></thead><tbody>';
       vs.forEach(function(r){h+='<tr><td>'+TD(r[4])+r[0]+'</td><td class="t-num">'+fmt(r[1])+'</td><td>'+r[2]+'</td><td class="t-num t-strong">'+fmt(r[3])+'</td></tr>';});
@@ -236,7 +240,7 @@ function build(data){
       ms.slice().reverse().forEach(function(m){var mi=ins.filter(function(r){return r.month===m&&!/^recommend/i.test(r.title);});if(!mi.length)return;
         h+='<div><b>'+MONTHS[+m.slice(5)-1].slice(0,3)+' '+m.slice(0,4)+'</b> '+mi.map(function(r){var t=(r.title||'').replace(/:$/,'')||(r.detail||'').split(/(?<=[.!?])\s/)[0];return esc(t.replace(/\.$/,''));}).join(' · ')+'</div>';});
       h+='</div></section>';}
-    h+='<footer class="t-foot"><details'+(printing?' open':'')+'><summary>How these numbers are counted</summary><dl><dt>Total views &amp; listens</dt><dd>Episode listens and views, plus reel and clip views, for everything viewed during the month.</dd><dt>Core episodes</dt><dd>Full episodes: video over 15 minutes, plus every audio listen.</dd><dt>Reels</dt><dd>Short videos under 3 minutes.</dd>'+(showClips?'<dt>Clips</dt><dd>Videos from 3 to 15 minutes.</dd>':'')+'<dt>This month\'s content vs. content still working for you</dt><dd>Views and listens on episodes, reels and clips released during the month, compared with everything released before it. Some platforms count a post\'s views to date, so new posts can include views from the first few days of the next month. For a range of months, each post is counted as new in the month it came out.</dd><dt>Placements</dt><dd>Pieces created times the platforms each is posted to under your plan.</dd></dl></details><div class="t-brand">The<span>Podcast</span>Upload</div></footer>';
+    h+='<footer class="t-foot"><details'+(printing?' open':'')+'><summary>How these numbers are counted</summary><dl><dt>Total views &amp; listens</dt><dd>Episode listens and views, plus reel and clip views, for everything viewed during the month.</dd><dt>Core episodes</dt><dd>Full episodes: video over 15 minutes, plus every audio listen.</dd>'+(SR?'<dt>Reels</dt><dd>Short videos under 3 minutes.</dd>':'')+(SC?'<dt>Clips</dt><dd>Videos from 3 to 15 minutes.</dd>':'')+'<dt>This month\'s content vs. content still working for you</dt><dd>Views and listens on episodes, reels and clips released during the month, compared with everything released before it. Some platforms count a post\'s views to date, so new posts can include views from the first few days of the next month. For a range of months, each post is counted as new in the month it came out.</dd><dt>Placements</dt><dd>Pieces created times the platforms each is posted to under your plan.</dd></dl></details><div class="t-brand">The<span>Podcast</span>Upload</div></footer>';
     return h;
   }
 
