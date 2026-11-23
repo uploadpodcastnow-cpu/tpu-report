@@ -197,7 +197,7 @@ function build(data){
       rows.forEach(function(r){var v2=r.value;s+='<div class="t-row"><div>'+esc(r.platform)+'</div><div class="t-track"><div class="t-bar" style="background:'+CV[k]+';width:'+Math.max(1.5,v2/mx*100)+'%"></div></div><div class="t-val">'+fmt(v2)+'<span>'+(t?(v2/t*100).toFixed(1):'0')+'%</span></div></div>';});
       return s+'</div>';}
     h+='<section class="t-sec t-keep"><h2 class="t-h2">Views <span>by platform</span></h2><p class="t-sub">Where your audience found you'+(multi?' across these months':' in '+monthName(ms[0]))+', and each platform\'s share of the total.</p><div class="t-grid3">';
-    h+=mix('Core episodes',by(ms,'episode_audio').concat(by(ms,'episode_video')),'listens &amp; views','episodes')+(SR?mix('Reels',by(ms,'reel'),'views','reels'):'')+(SC?mix('Clips',by(ms,'clip'),'views','clips'):'');
+    h+=mix('Core episodes',by(ms,'episode_audio').map(function(r){return {platform:'Podcast apps',value:r.value};}).concat(by(ms,'episode_video')),'listens &amp; views','episodes')+(SR?mix('Reels',by(ms,'reel'),'views','reels'):'')+(SC?mix('Clips',by(ms,'clip'),'views','clips'):'');
     h+='</div></section>';
     var NT=[['Core episodes','new_episode',by(ms,'episode_audio').concat(by(ms,'episode_video')),'listens &amp; views','episodes']];if(SR)NT.push(['Reels','new_reel',by(ms,'reel'),'views','reels']);if(SC)NT.push(['Clips','new_clip',by(ms,'clip'),'views','clips']);
     NT=NT.map(function(t){var nr=by(ms,t[1]),nm={};nr.forEach(function(r){nm[r.month]=1;});return {label:t[0],has:nr.length>0,nw:sum(nr),all:sum(t[2].filter(function(r){return nm[r.month];})),unit:t[3],col:CV[t[4]]};}).filter(function(t){return t.has&&t.all>0;});
