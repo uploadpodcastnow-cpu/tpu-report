@@ -269,9 +269,9 @@ function build(data){
       var ap=num(S.audio_platforms)||0,rp=num(S.reel_platforms)||0,cp=num(S.clip_platforms)||0;
       // Platforms come from where this client has numbers in the period; most-viewed first.
       var platsOf=function(metric){var t={},o=[];by(ms,metric).forEach(function(r){if(!(r.platform in t)){t[r.platform]=0;o.push(r.platform);}t[r.platform]+=num(r.value);});return o.sort(function(a,b){return t[b]-t[a];});};
-      var groups=[],OTH=/^(other apps|other podcast apps|podcast apps|audio)$/i;
-      if(ce){var an=platsOf('episode_audio'),named=an.filter(function(x){return !OTH.test(x);}),hasO=an.some(function(x){return OTH.test(x);}),oc=ap?Math.max(ap-named.length,0):(hasO?1:0),ar=named.map(function(x){return [x,ce];});
-        if(oc)ar.push([(named.length?'Other podcast apps':'Podcast apps')+(oc>1?' ('+oc+' apps)':''),ce*oc]);
+      var groups=[],NAMED=/^(apple podcasts|spotify|amazon music|youtube music|iheartradio|pandora|audible)$/i;
+      if(ce){var an=platsOf('episode_audio'),named=an.filter(function(x){return NAMED.test(x);}),hasO=an.some(function(x){return !NAMED.test(x);}),oc=ap?Math.max(ap-named.length,0):(hasO?1:0),ar=named.map(function(x){return [x,ce,1];});
+        if(oc)ar.push([(named.length?'Other podcast apps':'Podcast apps')+(oc>1?' ('+oc+' apps)':''),ce*oc,oc]);
         if(ar.length)groups.push(['Audio episodes',ce,'episodes',ar]);
         var vn=platsOf('episode_video');if(vn.length)groups.push(['Video episodes',ce,'episodes',vn.map(function(x){return [x,ce];})]);}
       if(SR&&rl){var rn=platsOf('reel');groups.push(['Reels',rl,'reels',rn.length?rn.map(function(x){return [x,rl];}):(rp?[['Reel platforms ('+rp+')',rl*rp]]:[])]);}
@@ -279,8 +279,8 @@ function build(data){
       groups=groups.filter(function(g){return g[3].length;});
       var pcs=ce+(SR?rl:0)+cl,pl=0;groups.forEach(function(g){g[3].forEach(function(r){pl+=r[1];});});
       h+='<section class="t-sec t-card"><h2 class="t-h2">The value <span>snapshot</span></h2><p class="t-sub">What we created for you'+(multi?' over these months':' this month')+', and every platform it was posted to. Each piece posted to a platform counts as one placement.</p><div class="t-wrap"><table class="t-table t-vtab"><thead><tr><th>Content</th><th class="t-num">Placements</th></tr></thead><tbody>';
-      groups.forEach(function(g){var gt=g[3].reduce(function(a,r){return a+r[1];},0);
-        h+='<tr class="t-vg"><td>'+TD(g[2])+'<b>'+g[0]+'</b> <span class="t-vmeta">'+fmt(g[1])+' created · posted to '+g[3].length+' '+(g[3].length===1?'place':'places')+'</span></td><td class="t-num t-strong">'+fmt(gt)+'</td></tr>';
+      groups.forEach(function(g){var gt=g[3].reduce(function(a,r){return a+r[1];},0),np=g[3].reduce(function(a,r){return a+(r[2]||1);},0);
+        h+='<tr class="t-vg"><td>'+TD(g[2])+'<b>'+g[0]+'</b> <span class="t-vmeta">'+fmt(g[1])+' created · posted to '+np+' '+(np===1?'place':'places')+'</span></td><td class="t-num t-strong">'+fmt(gt)+'</td></tr>';
         g[3].forEach(function(r){h+='<tr class="t-vp"><td>'+esc(r[0])+'</td><td class="t-num">'+fmt(r[1])+'</td></tr>';});});
       h+='</tbody></table></div><p class="t-callout"><b>'+fmt(pcs)+'</b> pieces of content, working in <b>'+fmt(pl)+'</b> places for you '+(multi?'over '+ms.length+' months':'this month')+'</p></section>';}
     var tc=topContent(ms),tes=tc.eps,tr=tc.reels;
