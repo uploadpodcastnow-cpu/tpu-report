@@ -200,7 +200,7 @@ function build(data){
       var sel=plats.indexOf(state.demoP)>-1?state.demoP:plats[0];
       var ageN=function(t){var m=String(t).match(/\d+/);return m?+m[0]:999;};
       var DC=['var(--c-ep)','var(--c-reel)','var(--c-clip)','#b9b6ad','var(--accent)'];
-      var LBM={'Browse features':'YouTube home page & subscriptions','Suggested videos':'Suggested next to other videos','External':'Links from other sites & apps','Channel pages':'Your channel page','Direct or unknown':'Direct links or unknown','Other YouTube features':'Other YouTube pages','Shorts feed':'Shorts feed','YouTube search':'YouTube search','End screens':'End screens of other videos','Hashtag pages':'Hashtag pages','Shorts content links':'Links in Shorts','Not subscribed':'Not subscribed','Subscribed':'Subscribers'};
+      var LBM={'Browse features':'YouTube home page & subscriptions','Suggested videos':'Suggested next to other videos','External':'Links from other sites & apps','Channel pages':'Your channel page','Direct or unknown':'Direct links or unknown','Other YouTube features':'Other YouTube pages','Shorts feed':'Shorts feed','YouTube search':'YouTube search','End screens':'End screens of other videos','Hashtag pages':'Hashtag pages','Shorts content links':'Links in Shorts','Not subscribed':'Not subscribed','Subscribed':'Subscribers','User-specified':'Other'};
       var LB=function(t){return LBM[t]||t;};
       var block=function(p){
         var rs=all.filter(function(r){return r.platform===p;}),lm=rs.map(function(r){return r.month;}).sort().pop();
