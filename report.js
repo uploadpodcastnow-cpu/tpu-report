@@ -213,7 +213,11 @@ function build(data){
           s+='<div class="t-card"><div class="t-klabel" style="margin-bottom:12px">'+d[1]+'</div>';
           if(/gender|device|subscribed/.test(d[0])){var tot=g.reduce(function(a,r){return a+num(r.value);},0)||1,C=2*Math.PI*38,off=0,ctr=d[0]==='demo_subscribed'?(g.filter(function(r){return /^subscribed$/i.test(r.title);})[0]||g[0]):g[0];
             var sv='<svg viewBox="0 0 100 100" width="124" height="124" role="img" aria-label="'+d[1]+'"><circle cx="50" cy="50" r="38" fill="none" stroke="#ece9e2" stroke-width="15"/>';
-            g.forEach(function(r,i){var len=num(r.value)/tot*C;sv+='<circle cx="50" cy="50" r="38" fill="none" stroke="'+DC[i%DC.length]+'" stroke-width="15" stroke-dasharray="'+len.toFixed(2)+' '+(C-len).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'" transform="rotate(-90 50 50)"/>';off+=len;});
+            var pt=function(f){var a=f*2*Math.PI-Math.PI/2;return (50+38*Math.cos(a)).toFixed(3)+' '+(50+38*Math.sin(a)).toFixed(3);};
+            g.forEach(function(r,i){var f=num(r.value)/tot;if(f<=0)return;var c=DC[i%DC.length];
+              if(f>=0.9999)sv+='<circle cx="50" cy="50" r="38" fill="none" stroke="'+c+'" stroke-width="15"/>';
+              else sv+='<path d="M '+pt(off)+' A 38 38 0 '+(f>0.5?1:0)+' 1 '+pt(off+f)+'" fill="none" stroke="'+c+'" stroke-width="15" stroke-linecap="butt"/>';
+              off+=f;});
             sv+='<text x="50" y="47" text-anchor="middle" style="font-size:17px;font-weight:800;fill:#1c1c1a">'+Math.round(num(ctr.value))+'%</text><text x="50" y="62" text-anchor="middle" style="font-size:8.5px;fill:#6b6b66">'+esc(LB(ctr.title))+'</text></svg>';
             s+='<div class="t-donut">'+sv+'<div class="t-gkey">'+g.map(function(r,i){return '<div><span class="t-sw" style="background:'+DC[i%DC.length]+'"></span>'+esc(LB(r.title))+' <b>'+num(r.value).toFixed(1)+'%</b></div>';}).join('')+'</div></div>';}
           else{var mx=Math.max.apply(null,g.map(function(r){return num(r.value);}).concat([1]));
