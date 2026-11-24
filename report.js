@@ -210,13 +210,13 @@ function build(data){
         var P=plats.map(function(p){var L=latest(p);return {p:p,lm:L.lm,rs:L.rs,w:pviews(p,L.lm)};}).filter(function(x){return x.w>0;});
         if(!P.length)return block(plats[0]);
         var out=[],src={},blended=[];
-        DM.forEach(function(d){var have=P.filter(function(x){return x.rs.some(function(r){return r.metric===d[0];});});if(!have.length)return;
+        DM.forEach(function(d){if(d[0]==='demo_source')return;var have=P.filter(function(x){return x.rs.some(function(r){return r.metric===d[0];});});if(!have.length)return;
           if(have.length===1){have[0].rs.filter(function(r){return r.metric===d[0];}).forEach(function(r){out.push(r);});src[d[0]]=have[0].p;return;}
           var W=have.reduce(function(a,x){return a+x.w;},0),acc={},ord=[];
           have.forEach(function(x){x.rs.filter(function(r){return r.metric===d[0];}).forEach(function(r){if(!(r.title in acc)){acc[r.title]=0;ord.push(r.title);}acc[r.title]+=num(r.value)*x.w/W;});});
           ord.forEach(function(t){out.push({metric:d[0],title:t,value:String(Math.round(acc[t]*10)/10)});});blended.push(d[1].toLowerCase());});
         var ms2=P.map(function(x){return x.lm;}).filter(function(m,i,a){return a.indexOf(m)===i;}).map(monthName).join(', ');
-        var note='<b>All platforms</b> · '+ms2+' · '+(blended.length?'blended by each platform\'s views ('+P.map(function(x){return esc(x.p)+' '+fmt(x.w);}).join(', ')+')':'')+'</p><p class="t-dnote" style="margin-top:-8px">'+P.map(function(x){var b=(x.rs.filter(function(r){return r.detail;})[0]||{}).detail||'% of views';return esc(x.p)+': '+esc(b);}).join(' · ');
+        var note='<b>All Platforms</b> · '+ms2+' · '+(blended.length?'blended by each platform\'s views ('+P.map(function(x){return esc(x.p)+' '+fmt(x.w);}).join(', ')+')':'')+'</p><p class="t-dnote" style="margin-top:-8px">'+P.map(function(x){var b=(x.rs.filter(function(r){return r.detail;})[0]||{}).detail||'% of views';return esc(x.p)+': '+esc(b);}).join(' · ');
         return block(null,out,note,src);};
       var block=function(p,rs0,note0,src){
         var L=rs0?{rs:rs0}:latest(p),rs=L.rs,lm=L.lm;src=src||{};
@@ -243,7 +243,7 @@ function build(data){
       var h2='<section class="t-sec"><h2 class="t-h2">Your <span>audience</span></h2><p class="t-sub">Who is watching and listening, from each platform\'s own audience data. Platforms share this as percentages only, and only when there are enough views to keep it anonymous.'+(ms.length>1?' For a range of months, this shows the most recent month with audience data.':'')+'</p>';
       var show=function(p){return p==='All'?allBlock():block(p);};
       if(printing)h2+=tabs.map(show).join('');
-      else{if(tabs.length>1)h2+='<div class="t-dseg">'+tabs.map(function(p){return '<button data-dp="'+esc(p)+'" aria-pressed="'+(p===sel)+'">'+(p==='All'?'All platforms':esc(p))+'</button>';}).join('')+'</div>';h2+=show(sel);}
+      else{if(tabs.length>1)h2+='<div class="t-dseg">'+tabs.map(function(p){return '<button data-dp="'+esc(p)+'" aria-pressed="'+(p===sel)+'">'+(p==='All'?'All Platforms':esc(p))+'</button>';}).join('')+'</div>';h2+=show(sel);}
       return h2+'</section>';
     }
     function mix(title,rows,unit,k){rows=byPlatform(rows);var t=rows.reduce(function(a,r){return a+r.value;},0),mx=Math.max.apply(null,rows.map(function(r){return r.value;}).concat([1]));
