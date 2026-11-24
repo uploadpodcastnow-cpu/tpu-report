@@ -210,11 +210,11 @@ function build(data){
     var cr={};by(ms,'created').forEach(function(r){cr[r.platform]=(cr[r.platform]||0)+num(r.value);});
     if(Object.keys(cr).length){var ce=cr['Core episodes']||0,rl=cr['Reels']||0,cl=SC?(cr['Clips']||0):0;
       var ap=num(S.audio_platforms)||0,rp=num(S.reel_platforms)||0,cp=num(S.clip_platforms)||0;
-      var vs=[['Core audio',ce,(ap||'')+(ap?'+ platforms':''),ce*ap,'episodes'],['YouTube episodes',ce,'YouTube',ce,'episodes']];if(SR)vs.push(['Reels',rl,rp+' platforms',rl*rp,'reels']);if(SC)vs.push(['Clips',cl,cp+' platforms',cl*cp,'clips']);
+      var vs=[];if(ap)vs.push(['Core audio',ce,ap+'+ platforms',ce*ap,'episodes']);vs.push(['YouTube episodes',ce,'YouTube',ce,'episodes']);if(SR&&rp)vs.push(['Reels',rl,rp+' platforms',rl*rp,'reels']);if(SC&&cp)vs.push(['Clips',cl,cp+' platforms',cl*cp,'clips']);var pcs=ce+vs.filter(function(r){return r[0]==='Reels'||r[0]==='Clips';}).reduce(function(a,r){return a+r[1];},0);
       var pl=vs.reduce(function(a,r){return a+r[3];},0);
       h+='<section class="t-sec t-card"><h2 class="t-h2">The value <span>snapshot</span></h2><p class="t-sub">What we created for you and everywhere it was posted'+(multi?' over these months':'')+'.</p><div class="t-wrap"><table class="t-table"><thead><tr><th>Content type</th><th class="t-num">Created</th><th>Platforms</th><th class="t-num">Total placements</th></tr></thead><tbody>';
       vs.forEach(function(r){h+='<tr><td>'+TD(r[4])+r[0]+'</td><td class="t-num">'+fmt(r[1])+'</td><td>'+r[2]+'</td><td class="t-num t-strong">'+fmt(r[3])+'</td></tr>';});
-      h+='</tbody></table></div><p class="t-callout"><b>'+fmt(ce+rl+cl)+'</b> pieces of content, working in <b>'+fmt(pl)+'</b> places for you '+(multi?'over '+ms.length+' months':'this month')+'</p></section>';}
+      h+='</tbody></table></div><p class="t-callout"><b>'+fmt(pcs)+'</b> pieces of content, working in <b>'+fmt(pl)+'</b> places for you '+(multi?'over '+ms.length+' months':'this month')+'</p></section>';}
     var tc=topContent(ms),tes=tc.eps,tr=tc.reels;
     if(!multi&&(tes.length||tr.length)){h+='<div class="t-two t-sec">';
       if(tes.length){h+='<section class="t-card"><h2 class="t-h2">Top performing <span>episodes</span></h2><div class="t-wrap"><table class="t-table"><thead><tr><th>Episode</th><th class="t-num">YouTube</th><th class="t-num">Facebook</th><th class="t-num">Audio</th><th class="t-num">Total</th></tr></thead><tbody>';
