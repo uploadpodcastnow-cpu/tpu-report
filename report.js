@@ -174,10 +174,10 @@ function build(data){
       var cell=function(e,cs,cls){var has=cs.some(function(c){return e.p[c]!=null;});return '<td class="t-num '+cls+'">'+(has?fmt(sm(e,cs)):'<span class="t-dash">—</span>')+'</td>';};
       h+='<section class="t-sec t-card t-rel"><h2 class="t-h2">Full episodes <span>released '+(multi?'in this time frame':'this month')+'</span></h2><p class="t-sub">Every full episode we released'+(multi?' from '+v.short:' in '+monthName(ms[0]))+'. <span class="t-key t-kv">'+ICV+' Views</span> are video plays on YouTube and Facebook. <span class="t-key t-kl">'+ICL+' Listens</span> are audio plays in podcast apps.</p>';
       h+='<div class="t-wrap"><table class="t-table"><thead><tr><th>Episode</th><th class="t-num t-cv">'+ICV+' Views</th><th class="t-num t-cl">'+ICL+' Listens</th><th class="t-num">Total</th></tr></thead><tbody>';
-      var TV=0,TL=0;ro.forEach(function(e){var vw=sm(e,VC),ls=sm(e,LC);TV+=vw;TL+=ls;var lk=e.links.YouTube||e.links.Facebook||e.links.Audio||'';
-        h+='<tr><td>'+A(lk,esc(e.title))+'<span class="t-small">'+esc(e.detail)+(multi?(e.detail?' · ':'')+monthName(e.month):'')+'</span></td>'+cell(e,VC,'t-cv')+cell(e,LC,'t-cl')+'<td class="t-num t-strong">'+fmt(vw+ls)+'</td></tr>';});
+      var TV=0,TL=0;ro.forEach(function(e,ri){var vw=sm(e,VC),ls=sm(e,LC);TV+=vw;TL+=ls;var lk=e.links.YouTube||e.links.Facebook||e.links.Audio||'';
+        h+='<tr'+(ri>=10&&!printing?' class="t-more" hidden':'')+'><td>'+A(lk,esc(e.title))+'<span class="t-small">'+esc(e.detail)+(multi?(e.detail?' · ':'')+monthName(e.month):'')+'</span></td>'+cell(e,VC,'t-cv')+cell(e,LC,'t-cl')+'<td class="t-num t-strong">'+fmt(vw+ls)+'</td></tr>';});
       if(ro.length>1)h+='<tr class="t-totrow"><td><b>All '+ro.length+' episodes</b></td><td class="t-num t-cv"><b>'+fmt(TV)+'</b></td><td class="t-num t-cl"><b>'+fmt(TL)+'</b></td><td class="t-num t-strong">'+fmt(TV+TL)+'</td></tr>';
-      h+='</tbody></table></div><p class="t-sub t-scr" style="margin:10px 0 0">Click a title to watch it.</p></section>';
+      h+='</tbody></table></div>'+(ro.length>10&&!printing?'<button type="button" class="t-tool t-seemore t-scr" style="margin-top:12px">See 10 more <span>('+(ro.length-10)+' more episodes)</span></button>':'')+'<p class="t-sub t-scr" style="margin:10px 0 0">Click a title to watch it.</p></section>';
     }
     h+='<section class="t-sec t-card"><h2 class="t-h2">Views <span>over time</span></h2><p class="t-sub">'+(multi?'The months in this view are highlighted.':'The 12 months up to '+monthName(ms[0])+'.')+'<span class="t-scr"> Click a month to open it.</span></p>';
     if(printing){h+='<div class="t-chart">'+trendSVG(680,ms,'total')+'</div>';}
@@ -261,6 +261,7 @@ function build(data){
     var ys=root.querySelector('.t-year');if(ys)ys.onchange=function(){var y=ys.value,ym=months.filter(function(m){return yearOf(m)===y;});
       if(state.kind==='year'){state.year=y;render();}else openMonth(ym[ym.length-1]);};
     root.querySelectorAll('.t-seg button').forEach(function(b){b.onclick=function(){state.metric=b.dataset.k;render();};});
+    root.querySelectorAll('.t-seemore').forEach(function(b){b.onclick=function(){var hid=b.closest('section').querySelectorAll('tr.t-more[hidden]');for(var i=0;i<10&&i<hid.length;i++)hid[i].hidden=false;var left=hid.length-Math.min(10,hid.length);if(left<=0)b.remove();else b.querySelector('span').textContent='('+left+' more episodes)';};});
     root.querySelectorAll('[data-print]').forEach(function(b){b.onclick=function(){doPrint(b.dataset.print==='all');};});
     drawTrend(v);
   }
