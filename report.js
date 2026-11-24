@@ -197,20 +197,35 @@ function build(data){
       var ORD=['YouTube','Facebook','Instagram','TikTok','Spotify','Apple Podcasts','Other apps'],plats=[];
       all.forEach(function(r){if(plats.indexOf(r.platform)<0)plats.push(r.platform);});
       plats.sort(function(a,b){var x=ORD.indexOf(a),y=ORD.indexOf(b);return (x<0?99:x)-(y<0?99:y);});
-      var sel=plats.indexOf(state.demoP)>-1?state.demoP:plats[0];
+      var tabs=plats.length>1?['All'].concat(plats):plats;
+      var sel=tabs.indexOf(state.demoP)>-1?state.demoP:tabs[0];
       var ageN=function(t){var m=String(t).match(/\d+/);return m?+m[0]:999;};
       var DC=['var(--c-ep)','var(--c-reel)','var(--c-clip)','#b9b6ad','var(--accent)'];
       var LBM={'Browse features':'YouTube home page & subscriptions','Suggested videos':'Suggested next to other videos','External':'Links from other sites & apps','Channel pages':'Your channel page','Direct or unknown':'Direct links or unknown','Other YouTube features':'Other YouTube pages','Shorts feed':'Shorts feed','YouTube search':'YouTube search','End screens':'End screens of other videos','Hashtag pages':'Hashtag pages','Shorts content links':'Links in Shorts','Not subscribed':'Not subscribed','Subscribed':'Subscribers','User-specified':'Other'};
       var LB=function(t){return LBM[t]||t;};
-      var block=function(p){
-        var rs=all.filter(function(r){return r.platform===p;}),lm=rs.map(function(r){return r.month;}).sort().pop();
-        rs=rs.filter(function(r){return r.month===lm;});
-        var basis=(rs.filter(function(r){return r.detail;})[0]||{}).detail||'share of views';
-        var s='<p class="t-dnote"><b>'+esc(p)+'</b> · '+monthName(lm)+' · '+esc(basis)+'</p><div class="t-grid3">';
+      var latest=function(p){var rs=all.filter(function(r){return r.platform===p;}),lm=rs.map(function(r){return r.month;}).sort().pop();return {lm:lm,rs:rs.filter(function(r){return r.month===lm;})};};
+      // Views a platform had in a month (episodes, reels, clips, or listens for audio apps).
+      var pviews=function(p,m){var names=p==='YouTube'?['YouTube','YouTube Shorts']:[p];return data.filter(function(r){return r.month===m&&names.indexOf(r.platform)>-1&&/^(episode_video|episode_audio|reel|clip)$/.test(r.metric)&&num(r.value)!=null;}).reduce(function(a,r){return a+num(r.value);},0);};
+      var allBlock=function(){
+        var P=plats.map(function(p){var L=latest(p);return {p:p,lm:L.lm,rs:L.rs,w:pviews(p,L.lm)};}).filter(function(x){return x.w>0;});
+        if(!P.length)return block(plats[0]);
+        var out=[],src={},blended=[];
+        DM.forEach(function(d){var have=P.filter(function(x){return x.rs.some(function(r){return r.metric===d[0];});});if(!have.length)return;
+          if(have.length===1){have[0].rs.filter(function(r){return r.metric===d[0];}).forEach(function(r){out.push(r);});src[d[0]]=have[0].p;return;}
+          var W=have.reduce(function(a,x){return a+x.w;},0),acc={},ord=[];
+          have.forEach(function(x){x.rs.filter(function(r){return r.metric===d[0];}).forEach(function(r){if(!(r.title in acc)){acc[r.title]=0;ord.push(r.title);}acc[r.title]+=num(r.value)*x.w/W;});});
+          ord.forEach(function(t){out.push({metric:d[0],title:t,value:String(Math.round(acc[t]*10)/10)});});blended.push(d[1].toLowerCase());});
+        var ms2=P.map(function(x){return x.lm;}).filter(function(m,i,a){return a.indexOf(m)===i;}).map(monthName).join(', ');
+        var note='<b>All platforms</b> · '+ms2+' · '+(blended.length?'blended by each platform\'s views ('+P.map(function(x){return esc(x.p)+' '+fmt(x.w);}).join(', ')+')':'')+'</p><p class="t-dnote" style="margin-top:-8px">'+P.map(function(x){var b=(x.rs.filter(function(r){return r.detail;})[0]||{}).detail||'% of views';return esc(x.p)+': '+esc(b);}).join(' · ');
+        return block(null,out,note,src);};
+      var block=function(p,rs0,note0,src){
+        var L=rs0?{rs:rs0}:latest(p),rs=L.rs,lm=L.lm;src=src||{};
+        var basis=rs0?'':(rs.filter(function(r){return r.detail;})[0]||{}).detail||'share of views';
+        var s='<p class="t-dnote">'+(note0||('<b>'+esc(p)+'</b> · '+monthName(lm)+' · '+esc(basis)))+'</p><div class="t-grid3">';
         DM.forEach(function(d){var g=rs.filter(function(r){return r.metric===d[0];});if(!g.length)return;
           if(d[0]==='demo_age')g.sort(function(a,b){return ageN(a.title)-ageN(b.title);});else g.sort(function(a,b){return num(b.value)-num(a.value);});
           if(/country|city|source/.test(d[0]))g=g.slice(0,5);
-          s+='<div class="t-card"><div class="t-klabel" style="margin-bottom:12px">'+d[1]+'</div>';
+          s+='<div class="t-card"><div class="t-klabel" style="margin-bottom:12px">'+d[1]+(src[d[0]]?' <span style="font-weight:600;text-transform:none;letter-spacing:0">· '+esc(src[d[0]])+'</span>':'')+'</div>';
           if(/gender|device|subscribed/.test(d[0])){var tot=g.reduce(function(a,r){return a+num(r.value);},0)||1,C=2*Math.PI*38,off=0,ctr=d[0]==='demo_subscribed'?(g.filter(function(r){return /^subscribed$/i.test(r.title);})[0]||g[0]):g[0];
             var sv='<svg viewBox="0 0 100 100" width="124" height="124" role="img" aria-label="'+d[1]+'"><circle cx="50" cy="50" r="38" fill="none" stroke="#ece9e2" stroke-width="15"/>';
             var pt=function(f){var a=f*2*Math.PI-Math.PI/2;return (50+38*Math.cos(a)).toFixed(3)+' '+(50+38*Math.sin(a)).toFixed(3);};
@@ -226,8 +241,9 @@ function build(data){
           s+='</div>';});
         return s+'</div>';};
       var h2='<section class="t-sec"><h2 class="t-h2">Your <span>audience</span></h2><p class="t-sub">Who is watching and listening, from each platform\'s own audience data. Platforms share this as percentages only, and only when there are enough views to keep it anonymous.'+(ms.length>1?' For a range of months, this shows the most recent month with audience data.':'')+'</p>';
-      if(printing)h2+=plats.map(block).join('');
-      else{if(plats.length>1)h2+='<div class="t-dseg">'+plats.map(function(p){return '<button data-dp="'+esc(p)+'" aria-pressed="'+(p===sel)+'">'+esc(p)+'</button>';}).join('')+'</div>';h2+=block(sel);}
+      var show=function(p){return p==='All'?allBlock():block(p);};
+      if(printing)h2+=tabs.map(show).join('');
+      else{if(tabs.length>1)h2+='<div class="t-dseg">'+tabs.map(function(p){return '<button data-dp="'+esc(p)+'" aria-pressed="'+(p===sel)+'">'+(p==='All'?'All platforms':esc(p))+'</button>';}).join('')+'</div>';h2+=show(sel);}
       return h2+'</section>';
     }
     function mix(title,rows,unit,k){rows=byPlatform(rows);var t=rows.reduce(function(a,r){return a+r.value;},0),mx=Math.max.apply(null,rows.map(function(r){return r.value;}).concat([1]));
