@@ -157,7 +157,7 @@ function build(data){
       return h+'</div></section>';}
     var m=ms[0],ov=overallOf(m);if(ov==null)return '';var bd=band(ov);
     var i=months.indexOf(m),pm=null,po=null;for(var k=i-1;k>=0;k--){var q=overallOf(months[k]);if(q!=null){pm=months[k];po=q;break;}}
-    var ASK={'content pillars':'Are we talking about the right things?','message fit':'Is each episode made for the person you want to reach?','audience fit':'Is each episode made for the person you want to reach?','audience match':'Are the views and listens coming from that person?','format & length':'Is it in the shape you planned?','tone & episode structure':'Does it sound and flow like your show?','posting consistency':'Did episodes go out on your planned schedule?'};
+    var ASK={'content pillars':'Are we talking about the right things?','message fit':'Is each episode made for the person you want to reach?','audience fit':'Is each episode made for the person you want to reach?','audience match':'Are the views and listens coming from that person?','format & length':'Are episodes the length and style you planned?','tone & episode structure':'Does it sound and flow like your show?','posting consistency':'Did episodes go out on your planned schedule?'};
     var askOf=function(r){return r.title||ASK[String(r.platform).trim().toLowerCase()]||'';};
     var R=52,C=2*Math.PI*R;
     h+='<p class="t-sub">How closely this month\'s content followed the plan in your Show Blueprint: your topics, who you\'re speaking to, who\'s actually watching and listening, your format and your tone. Each area is scored from 0 to 100.</p><div class="t-bp"><div class="t-bpring">';
